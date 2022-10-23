@@ -17,34 +17,35 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
           appBar: AppBar(
             title: const Text("Sudoku"),
+            centerTitle: true,
           ),
           body: const MyHomePage()),
     );
-  } 
+  }
 }
-//statefulwidget عشان البيانات عندي مو ثابتة stf
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  //احولها للست عادية عشان اوصل لها عن طريق الاندكس
   List displaygrid = List.generate(81, (i) => 0);
-  // املأ الdisplaygrid في القيم الموجودة في newsodoku اللي جاية من الباكج نفسها
-  List<List<int>> newsudoku = [
-    // [1, 2, 3],
-    // [1, 2, 3],
-    // [1, 2, 3]
-  ];
+  List displaygridSolved = List.generate(81, (i) => 0);
+  String resault = 'Good Luck!';
+
+  List<List<int>> newsudoku = [];
   List<List<int>> solvedsudoku = [];
   sudokuGen() {
-    var sudokuGenerator = SudokuGenerator(emptySquares: 54);
-    // SudokuUtilities.printSudoku(sudokuGenerator.newSudoku);
-    //new يحط لي فيها نسخة جديد من سودوكو // grid random number يخزنهم في الليست الجديد newsudoku
+    setState(() {
+      resault = 'Good Luck';
+    });
+    var sudokuGenerator = SudokuGenerator(emptySquares: 1);
+    SudokuUtilities.printSudoku(sudokuGenerator.newSudoku);
+
     newsudoku = sudokuGenerator.newSudoku;
-    // مليتها بالقيم اللي جاية من الباكج
     var index = 0;
     for (var i = 0; i < 9; i++) {
       for (var j = 0; j < 9; j++) {
@@ -53,33 +54,46 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    print('-------------------------');
     SudokuUtilities.printSudoku(sudokuGenerator.newSudokuSolved);
     solvedsudoku = sudokuGenerator.newSudokuSolved;
+    var index1 = 0;
+
+    for (var i = 0; i < 9; i++) {
+      for (var j = 0; j < 9; j++) {
+        displaygridSolved[index1] = solvedsudoku[i][j];
+        index1++;
+      }
+    }
+  }
+
+  isGridSolved() {
+    if (displaygrid.join() == displaygridSolved.join()) {
+      setState(() {
+        resault = 'Congratulations';
+      });
+    } else {
+      setState(() {
+        resault = 'Try Again';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    //scafold ترسم لي الصفحة و احط داخلها الاشياء اللي ابي ارسمها
     return Scaffold(
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            //grid
             child: GridView.builder(
               itemCount: 81,
               physics: const ScrollPhysics(),
               shrinkWrap: true,
-              // عشان تقفل لي القريد فيو على قد العناصر اللي فيها عشان ما يصير error UI
-              // من خصائص gridviwe
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                // احدد العناصر اللي في الوضع الافقي ب 9
                 crossAxisCount: 9,
               ),
               itemBuilder: ((context, index) {
                 return GestureDetector(
-                  // عشان اوفر خاصية ال on tap
                   onTap: () {
                     showDialog(
                       context: context,
@@ -150,15 +164,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      sudokuGen();
-                    });
+                    isGridSolved();
                   },
                   child: const Text('Check'),
                 ),
               ),
             ],
           ),
+          const SizedBox(
+            height: 20,
+          ),
+          Center(
+            child: Text(
+              resault,
+              style: Theme.of(context).textTheme.headline4,
+            ),
+          )
         ],
       ),
     );
